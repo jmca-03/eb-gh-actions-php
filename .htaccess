@@ -1,0 +1,18 @@
+# Enable mod_rewrite
+RewriteEngine On
+
+# Serve specific files (like home.php, about.php) if they exist
+RewriteCond %{DOCUMENT_ROOT}/public/%{REQUEST_FILENAME} -f
+RewriteRule ^(.*)$ public/$1 [L]
+
+# If the request is for the root URL, serve index.php
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^ public/index.php [L]
+
+# Fallback: Serve index.php for all other non-existent files or directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ public/index.php [L]
+
+# Set the default file to index.php in public/
+DirectoryIndex public/index.php index.php index.html index.htm
