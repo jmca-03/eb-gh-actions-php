@@ -23,10 +23,10 @@ jobs:
           #          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-        # Hello from AWS: WhoAmI
-      - name: Sts GetCallerIdentity
+      - name: Generate unique version label
+        id: generate_version
         run: |
-          aws sts get-caller-identity
+          echo "version_label=ver-${{ github.sha }}-${{ github.run_id }}-$(date +%s)" >> $GITHUB_ENV
 
       - name: Create deploy package zip
         run: zip -r deploy_package.zip . "*.git"
@@ -39,8 +39,8 @@ jobs:
           aws elasticbeanstalk create-application-version \
           --application-name ${{ secrets.AWS_APPLICATION_NAME }} \
           --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET_NAME }}",S3Key="deploy_package.zip" \
-          --version-label "ver-${{ github.sha }}-${{ github.run_id }}-$(date +%s)" \
+          --version-label ${{ env.version_label }} \
           --description "commit-sha-${{ github.sha }}"
 
       - name: Deploy new ElasticBeanstalk Application Version
-        run: aws elasticbeanstalk update-environment --environment-name ${{ secrets.AWS_APPLICATION_ENVIRONMENT_NAME }} --version-label "ver-${{ github.sha }}-${{ github.run_id }}-$(date +%s)"
+        run: aws elasticbeanstalk update-environment --environment-name ${{ secrets.AWS_APPLICATION_ENVIRONMENT_NAME }} --version-label ${{ env.version_label }}
