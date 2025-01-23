@@ -32,15 +32,15 @@ jobs:
         run: zip -r deploy_package.zip . "*.git"
 
       - name: Upload package to S3 bucket
-        run: aws s3 cp deploy_package.zip s3://elasticbeanstalk-ap-southeast-1-905418311483/
+        run: aws s3 cp deploy_package.zip s3://${{ secrets.AWS_S3_BUCKET_NAME }}
 
       - name: Create new ElasticBeanstalk Application Version
         run: |
           aws elasticbeanstalk create-application-version \
-          --application-name MyFirstCDEB \
-          --source-bundle S3Bucket="elasticbeanstalk-ap-southeast-1-905418311483",S3Key="deploy_package.zip" \
+          --application-name ${{ secrets.AWS_APPLICATION_NAME }} \
+          --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET_NAME }}",S3Key="deploy_package.zip" \
           --version-label "ver-${{ github.sha }}" \
           --description "commit-sha-${{ github.sha }}"
 
       - name: Deploy new ElasticBeanstalk Application Version
-        run: aws elasticbeanstalk update-environment --environment-name MyFirstCDEB-env-1 --version-label "ver-${{ github.sha }}"
+        run: aws elasticbeanstalk update-environment --environment-name ${{ secrets.AWS_APPLICATION_NAME }}-env-1 --version-label "ver-${{ github.sha }}"
